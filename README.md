@@ -1,12 +1,25 @@
-# Zulip
+## 👋 Welcome to zulip 🚀
 
-A self-hosted zulip application.
+Open-source team chat with threaded conversations
 
-## Installation
+## 📋 Description
+
+Open-source team chat with threaded conversations
+
+## 🚀 Services
+
+- **zulip**: zulip/docker-zulip:latest
+
+### Infrastructure Components
+
+- **zulip-db**: Postgres database
+
+
+## 📦 Installation
 
 ### Option 1: Quick Install
 ```bash
-curl -q -LSsf "https://raw.githubusercontent.com/composemgr/zulip/main/docker-compose.yaml" | docker compose -f - up -d
+curl -q -LSsf "https://raw.githubusercontent.com/composemgr/zulip/main/docker-compose.yaml" -o compose.yml
 ```
 
 ### Option 2: Git Clone
@@ -21,10 +34,66 @@ docker compose up -d
 composemgr install zulip
 ```
 
-## Configuration
+## 🔧 Configuration
 
-See docker-compose.yaml for environment variables and configuration options.
+### Environment Variables
 
-## Documentation
+```shell
+TZ=America/New_York
+DB_USER_NAME=zulip
+```
 
-Check the official project documentation for detailed setup and usage information.
+See `docker-compose.yaml` for complete list of configurable options.
+
+## 🌐 Access
+
+- **Web Interface**: http://172.17.0.1:8093
+
+## 📂 Volumes
+
+- `./rootfs/data/zulip` - Data storage
+- `./rootfs/config/zulip` - Data storage
+- `./rootfs/data/db/postgres/zulip` - Data storage
+
+## 🔐 Security
+
+- Change all default passwords before deploying to production
+- Use strong secrets for all authentication tokens
+- Configure HTTPS using a reverse proxy (nginx, traefik, caddy)
+- Regularly update Docker images for security patches
+- Backup your data regularly
+
+## 🔍 Logging
+
+```shell
+docker compose logs -f zulip
+```
+
+## 🛠️ Management
+
+```bash
+# Start services
+docker compose up -d
+
+# Stop services
+docker compose down
+
+# Update to latest images
+docker compose pull && docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Restart services
+docker compose restart
+```
+
+## 📋 Requirements
+
+- Docker Engine 20.10+
+- Docker Compose V2+
+
+## 🤝 Author
+
+🤖 casjay: [Github](https://github.com/casjay) 🤖  
+🦄 composemgr: [Github](https://github.com/composemgr) 🦄
