@@ -51,9 +51,9 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/data/zulip` - Data storage
-- `./rootfs/config/zulip` - Data storage
-- `./rootfs/data/db/postgres/zulip` - Data storage
+- `./volumes/data/zulip` - Data storage
+- `./volumes/config/zulip` - Data storage
+- `./volumes/data/db/postgres/zulip` - Data storage
 
 ## 🔐 Security
 
