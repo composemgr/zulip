@@ -20,8 +20,8 @@ services:
       TZ: ${TZ:-America/New_York}
       DATABASE_URL: postgres://${DB_USER_NAME:-zulip}:${DB_USER_PASS:-changeme_db_password}@zulip-db:5432/${DB_CREATE_DATABASE_NAME:-zulip}
     volumes:
-      - ./rootfs/data/zulip:/data
-      - ./rootfs/config/zulip:/config
+      - ./volumes/data/zulip:/data
+      - ./volumes/config/zulip:/config
     depends_on:
       - zulip-db
     healthcheck:
@@ -43,7 +43,7 @@ services:
       POSTGRES_USER: ${DB_USER_NAME:-zulip}
       POSTGRES_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
     volumes:
-      - ./rootfs/data/db/postgres/zulip:/var/lib/postgresql/data
+      - ./volumes/data/db/postgres/zulip:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 30s
