@@ -31,7 +31,7 @@ services:
       SETTING_MEMCACHED_LOCATION: zulip-memcached:11211
       SETTING_RABBITMQ_HOST: zulip-rabbitmq
       SETTING_REDIS_HOST: zulip-redis
-      SECRETS_rabbitmq_password: ${RABBITMQ_PASS:-changeme_db_password}
+      SECRETS_rabbitmq_password: ${DB_USER_PASS:-changeme_db_password}
       SECRETS_secret_key: ${APP_SECRET_KEY:-changeme_secret_key_min_32_chars}
       SECRETS_postgres_password: ${DB_USER_PASS:-changeme_db_password}
       SECRETS_memcached_password: ${MEMCACHED_PASS:-changeme_db_password}
@@ -122,8 +122,8 @@ services:
     environment:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-rabbitmq
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-zulip}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-changeme_db_password}
+      RABBITMQ_DEFAULT_USER: ${DB_USER_NAME:-zulip}
+      RABBITMQ_DEFAULT_PASS: ${DB_USER_PASS:-changeme_db_password}
     networks:
       - zulip
 
