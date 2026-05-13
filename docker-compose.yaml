@@ -25,8 +25,9 @@ services:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-app
       HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
-      DB_HOST: zulip-db
-      DB_HOST_PORT: 5432
+      SETTING_REMOTE_POSTGRES_HOST: zulip-db
+      SETTING_REMOTE_POSTGRES_PORT: 5432
+      SETTING_REMOTE_POSTGRES_SSLMODE: require
       DB_USER: ${DB_USER_NAME:-zulip}
       SETTING_MEMCACHED_LOCATION: zulip-memcached:11211
       SETTING_RABBITMQ_HOST: zulip-rabbitmq
