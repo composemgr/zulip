@@ -1,122 +1,119 @@
-# nginx proxy address - http://172.17.0.1:8093
+# nginx proxy address - http://172.17.0.1:64399
 
 name: zulip
 x-logging: &default-logging
-  driver: json-file
   options:
-    max-size: "5m"
-    max-file: "1"
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
 
 services:
-  zulip:
+  app:
     image: zulip/docker-zulip:latest
-    pull_policy: always
     container_name: zulip-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
     hostname: ${BASE_HOST_NAME:-$HOSTNAME}
     restart: always
+    pull_policy: always
     logging: *default-logging
-    networks:
-      - zulip
-      - proxy
-      - cloudflare
-    ports:
-      - "172.17.0.1:8093:80"
     environment:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-app
       HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
-      SETTING_REMOTE_POSTGRES_HOST: zulip-db
+      SETTING_EXTERNAL_HOST: ${BASE_HOST_NAME:-$HOSTNAME}.${BASE_DOMAIN_NAME:-example.com}
+      SETTING_ZULIP_ADMINISTRATOR: ${APP_ADMIN_USER:-admin}@${BASE_DOMAIN_NAME:-example.com}
+      SETTING_REMOTE_POSTGRES_HOST: db
       SETTING_REMOTE_POSTGRES_PORT: 5432
       SETTING_REMOTE_POSTGRES_SSLMODE: require
       DB_USER: ${DB_USER_NAME:-zulip}
-      SETTING_MEMCACHED_LOCATION: zulip-memcached:11211
-      SETTING_RABBITMQ_HOST: zulip-rabbitmq
-      SETTING_REDIS_HOST: zulip-redis
-      SECRETS_rabbitmq_password: ${DB_USER_PASS:-changeme_db_password}
-      SECRETS_secret_key: ${APP_SECRET_KEY:-changeme_secret_key_min_32_chars}
-      SECRETS_postgres_password: ${DB_USER_PASS:-changeme_db_password}
-      SECRETS_memcached_password: ${MEMCACHED_PASS:-changeme_db_password}
-      SECRETS_redis_password: ${REDIS_PASS:-changeme_db_password}
-      SETTING_EXTERNAL_HOST: ${BASE_HOST_NAME:-$HOSTNAME}.${BASE_DOMAIN_NAME:-example.com}
-      SETTING_ZULIP_ADMINISTRATOR: ${APP_ADMIN_USER:-admin}@${BASE_DOMAIN_NAME:-example.com}
+      SECRETS_postgres_password: ${DB_USER_PASS:-replace-with-a-random-password}
+      SETTING_MEMCACHED_LOCATION: memcached:11211
+      SECRETS_memcached_password: ${MEMCACHED_PASS:-replace-with-a-random-password}
+      SETTING_REDIS_HOST: redis
+      SECRETS_redis_password: ${REDIS_PASS:-replace-with-a-random-password}
+      SETTING_RABBITMQ_HOST: rabbitmq
+      SECRETS_rabbitmq_password: ${DB_USER_PASS:-replace-with-a-random-password}
+      SECRETS_secret_key: ${APP_SECRET_KEY:-replace-with-a-random-32-byte-hex-string}
       SETTING_EMAIL_HOST: ${EMAIL_SERVER_HOST:-172.17.0.1}
-      SETTING_EMAIL_HOST_USER: ${EMAIL_SERVER_LOGIN_NAME:-}
-      SECRETS_email_password: ${EMAIL_SERVER_LOGIN_PASS:-}
       SETTING_EMAIL_PORT: ${EMAIL_SERVER_PORT:-587}
       SETTING_EMAIL_USE_TLS: true
+      SETTING_EMAIL_HOST_USER: ${EMAIL_SERVER_LOGIN_NAME:-}
+      SECRETS_email_password: ${EMAIL_SERVER_LOGIN_PASS:-}
       SETTING_EMAIL_FROM_ADDRESS: ${EMAIL_SERVER_MAIL_FROM:-noreply@example.com}
       ZULIP_AUTH_BACKENDS: EmailAuthBackend
+    ports:
+      - '172.17.0.1:64399:80'
     volumes:
-      - ./volumes/data/zulip:/data
+      - './volumes/data/zulip:/data:z'
     depends_on:
-      - zulip-db
-      - zulip-redis
-      - zulip-memcached
-      - zulip-rabbitmq
-    labels:
-      - 'traefik.enable=true'
-      - 'cloudflare.enable=true'
-      - 'traefik.docker.network=proxy'
-      - 'cloudflare.service=http://zulip-app:80'
-      - 'cloudflare.hostname=zulip.${CLOUDFLARE_ZONE_NAME:-}'
-      - 'traefik.http.routers.zulip-app.entrypoints=http'
-      - 'traefik.http.routers.zulip-app-secure.tls=true'
-      - 'traefik.http.routers.zulip-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
-      - 'traefik.http.middlewares.zulip-app-https-redirect.redirectscheme.scheme=https'
-      - 'traefik.http.routers.zulip-app.middlewares=zulip-app-https-redirect'
-      - 'traefik.http.routers.zulip-app-secure.entrypoints=https'
-      - 'traefik.http.routers.zulip-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
-      - 'traefik.http.routers.zulip-app-secure.tls.certresolver=cloudflare'
-      - 'traefik.http.routers.zulip-app-secure.service=zulip-app'
-      - 'traefik.http.services.zulip-app.loadbalancer.server.port=80'
-
-  zulip-db:
-    image: zulip/zulip-postgresql:14
-    pull_policy: always
-    container_name: zulip-db
-    restart: always
-    logging: *default-logging
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      memcached:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - zulip
+
+  db:
+    image: zulip/zulip-postgresql:14
+    container_name: zulip-db
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: zulip-db
+    restart: always
+    pull_policy: always
+    logging: *default-logging
     environment:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-db
       POSTGRES_DB: ${DB_CREATE_DATABASE_NAME:-zulip}
       POSTGRES_USER: ${DB_USER_NAME:-zulip}
-      POSTGRES_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
+      POSTGRES_PASSWORD: ${DB_USER_PASS:-replace-with-a-random-password}
     volumes:
-      - ./volumes/data/db/postgres/zulip:/var/lib/postgresql/data
+      - './volumes/db/postgres/zulip:/var/lib/postgresql/data:z'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - zulip
 
-  zulip-memcached:
+  memcached:
     image: memcached:alpine
     container_name: zulip-memcached
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: zulip-memcached
     restart: always
     pull_policy: always
     logging: *default-logging
     environment:
+      TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-memcached
     networks:
       - zulip
 
-  zulip-redis:
+  redis:
     image: redis:alpine
     container_name: zulip-redis
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: zulip-redis
     restart: always
     pull_policy: always
     logging: *default-logging
     environment:
+      TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-redis
     networks:
       - zulip
 
-  zulip-rabbitmq:
+  rabbitmq:
     image: rabbitmq:latest
     container_name: zulip-rabbitmq
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: zulip-rabbitmq
     restart: always
     pull_policy: always
     logging: *default-logging
@@ -124,7 +121,7 @@ services:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-rabbitmq
       RABBITMQ_DEFAULT_USER: ${DB_USER_NAME:-zulip}
-      RABBITMQ_DEFAULT_PASS: ${DB_USER_PASS:-changeme_db_password}
+      RABBITMQ_DEFAULT_PASS: ${DB_USER_PASS:-replace-with-a-random-password}
     networks:
       - zulip
 
@@ -132,7 +129,3 @@ networks:
   zulip:
     name: zulip
     external: false
-  proxy:
-    external: true
-  cloudflare:
-    external: true
