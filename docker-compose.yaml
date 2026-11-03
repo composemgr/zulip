@@ -41,6 +41,12 @@ services:
       SECRETS_email_password: ${EMAIL_SERVER_LOGIN_PASS:-}
       SETTING_EMAIL_FROM_ADDRESS: ${EMAIL_SERVER_MAIL_FROM:-noreply@example.com}
       ZULIP_AUTH_BACKENDS: EmailAuthBackend
+    healthcheck:
+      test: ['CMD', 'curl', '-s', '-o', '/dev/null', '--max-time', '5', 'http://127.0.0.1:80/']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     ports:
       - '172.17.0.1:64399:80'
     volumes:
@@ -92,6 +98,12 @@ services:
     environment:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-memcached
+    healthcheck:
+      test: ['CMD', 'nc', '-z', '127.0.0.1', '11211']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - zulip
 
@@ -106,6 +118,12 @@ services:
     environment:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: zulip-redis
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep -q PONG']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - zulip
 
@@ -122,6 +140,12 @@ services:
       CONTAINER_NAME: zulip-rabbitmq
       RABBITMQ_DEFAULT_USER: ${DB_USER_NAME:-zulip}
       RABBITMQ_DEFAULT_PASS: ${DB_USER_PASS:-replace-with-a-random-password}
+    healthcheck:
+      test: ['CMD', 'bash', '-c', 'exec 3<>/dev/tcp/127.0.0.1/5672']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - zulip
 
